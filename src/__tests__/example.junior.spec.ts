@@ -3,14 +3,15 @@
 import {
     default as assert,
     strictEqual,
-    deepStrictEqual
+    deepStrictEqual,
 } from 'assert';
 
 import {
     normalLoop,
     formatDate,
-    ArrayDataItem
-} from '@/test-functions';
+    ArrayDataItem,
+    someProcessSyncFake,
+} from '@/example-for-test';
 
 describe('normal test case with no asserts', () => {
     it('do sth', () => {
@@ -51,5 +52,14 @@ describe('normal test case with asserts', () => {
             timestamp: 1539129600000,
             date: '2018-10-10'
         } ], 'array items should be attached date string');
+    });
+
+    it('fail', async () => {
+        const result: boolean = someProcessSyncFake();
+
+        // some judgement
+        if (!result) {
+            assert.fail('result of the process not correct!');
+        }
     });
 });

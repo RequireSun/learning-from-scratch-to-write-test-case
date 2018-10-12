@@ -24,3 +24,12 @@ export function formatDate (data: ArrayDataItem[]): ArrayDataItem[] {
 
     return data;
 }
+
+export function someProcessSyncFake (): boolean {
+    // some conditions
+    if (true) {
+        return true;
+    } else {
+        return false;
+    }
+}
