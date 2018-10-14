@@ -33,3 +33,15 @@ export function someProcessSyncFake (): boolean {
         return false;
     }
 }
+
+export function someProcessAsyncFake (callback: (err?: Error, data?: any) => any, willError: boolean): void {
+    setTimeout(() => {
+        if (willError) {
+            callback(new Error('process error!'));
+        } else {
+            callback(undefined, {
+                msg: 'ok',
+            });
+        }
+    }, 200);
+}
