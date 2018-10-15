@@ -19,8 +19,14 @@ npm run test:unit
 单元测试脚本位置:
 
 + [src/__tests__/example.junior.spec.ts](src/__tests__/example.junior.spec.ts)
+    
+    基础测试方法 (describe / it / 基础断言使用)
 
 + [src/__tests__/example.senior.spec.ts](src/__tests__/example.senior.spec.ts)
+
+    1. axios mock
+    
+    1. vue 组件测试
 
 被测代码文件位置:
 

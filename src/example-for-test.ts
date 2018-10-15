@@ -25,9 +25,9 @@ export function formatDate (data: ArrayDataItem[]): ArrayDataItem[] {
     return data;
 }
 
-export function someProcessSyncFake (): boolean {
+export function someProcessSyncFake (willError: boolean): boolean {
     // some conditions
-    if (true) {
+    if (willError) {
         return true;
     } else {
         return false;
