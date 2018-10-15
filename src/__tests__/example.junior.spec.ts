@@ -54,6 +54,12 @@ describe('normal test case with asserts', () => {
         assert(result === loopCount, 'result must be 10000');
     });
 
+    it('assert to judge is variable an Error', () => {
+        const result: any = new Error('test');
+        // 判断某个变量是不是 Error
+        assert(result instanceof Error, 'result must be 10000');
+    });
+
     it('compare values with equal API', () => {
         const loopCount: number = 10000;
         const result: number = normalLoop(loopCount);
