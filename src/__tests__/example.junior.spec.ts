@@ -21,6 +21,12 @@ import {
     someProcessAsyncFake,
 } from '@/example-for-test';
 
+import {
+    promisify,
+} from 'util';
+
+const version: number = +(((process.version || '').match(/^v(\d+)\./) || [ undefined, '0', ]) as any[])[1];
+
 describe('normal test case with no asserts', () => {
     it('do sth', () => {
         const loopCount: number = 10000;
@@ -109,9 +115,9 @@ describe('normal test case with asserts', () => {
 
     // 用来判断当前值是否是 error (其实只要非空就会报错), 一般用在 async 函数的回调中
     it('ifError to judge is the async function returns error', () => {
-        someProcessAsyncFake((err?: Error, data?: any) => {
+        someProcessAsyncFake(false, (err?: Error, data?: any) => {
             ifError(err);
-        }, false);
+        });
     });
 
 
@@ -146,22 +152,36 @@ describe('normal test case with asserts', () => {
 
 describe('async tests', () => {
     it('async with done', async (done: DoneCallback) => {
-        someProcessAsyncFake((err?: Error) => {
+        someProcessAsyncFake(false, (err?: Error) => {
             if (!err) {
                 done();
             } else {
                 done.fail('async failed!');
             }
-        }, false);
+        });
     });
-    // Node v10 新增
-    // it('async functions use `rejects` function', async () => {
-    //     console.log(assert);
-    //     await assert.rejects(async () => {
-    //         throw new TypeError('Wrong value');
-    //     }, {
-    //         name: 'TypeError',
-    //         message: 'Wrong value',
-    //     });
-    // });
+
+    if (10 <= version) {
+        // Node v10 新增
+        it('async functions use `rejects` assert', async () => {
+            await assert.rejects(async () => {
+                throw new TypeError('Wrong value');
+            }, {
+                name: 'TypeError',
+                message: 'Wrong value',
+            });
+        });
+
+        it('async functions use `rejects` assert', async () => {
+            await assert.rejects(async () => {
+                // 我把原来的回调包装成了 promise, 这个 API 从 v8.0.0 开始提供
+                const promised = promisify(someProcessAsyncFake);
+                // 返回 promise, 传入 true 在函数内部会导致 return error
+                return promised(true);
+            }, {
+                name: 'Error',
+                message: 'process error!',
+            });
+        })
+    }
 });

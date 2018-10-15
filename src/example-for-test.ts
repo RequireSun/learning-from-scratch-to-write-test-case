@@ -34,7 +34,7 @@ export function someProcessSyncFake (): boolean {
     }
 }
 
-export function someProcessAsyncFake (callback: (err?: Error, data?: any) => any, willError: boolean): void {
+export function someProcessAsyncFake (willError: boolean, callback: (err?: Error, data?: any) => any): void {
     setTimeout(() => {
         if (willError) {
             callback(new Error('process error!'));

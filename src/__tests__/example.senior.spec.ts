@@ -4,7 +4,12 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 
 import {
-    strictEqual
+    shallowMount,
+} from '@vue/test-utils';
+import HelloWorld from '@/components/HelloWorld.vue';
+
+import {
+    strictEqual,
 } from 'assert';
 
 import DoneCallback = jest.DoneCallback;
@@ -23,5 +28,15 @@ describe('axios mock example', () => {
         strictEqual(response.data, 'it\'s ok!');
 
         done();
+    });
+});
+
+describe('HelloWorld.vue', () => {
+    it('renders props.msg when passed', () => {
+        const msg = 'new message';
+        const wrapper = shallowMount(HelloWorld, {
+            propsData: { msg },
+        });
+        expect(wrapper.text()).toMatch(msg);
     });
 });
