@@ -3,7 +3,7 @@
 import {
     returnsInput,
     asyncTwoCallback,
-    someProcessAsyncFake,
+    someProcessAsyncFake, returnSth,
 } from '@/example-for-test';
 
 import assert from 'assert';
@@ -37,9 +37,43 @@ describe('mock wrapper: jest.fn', () => {
         jest.mock('../example-for-test');
 
         const examples = require('../example-for-test');
+
         examples.returnSth.mockReturnValue('foo');
 
         expect(examples.returnSth('string')).toBe('foo');
+
+        examples.returnSth('number');
+
+        expect(examples.returnSth.mock.calls).toEqual([
+            [ 'string', ],
+            [ 'number', ],
+        ]);
+
+        expect(examples.returnSth.mock.results).toEqual([
+            { isThrow: false, value: 'foo', },
+            { isThrow: false, value: 'foo', },
+        ]);
+    });
+
+    it('mock the return of function once', () => {
+        const fn = jest.fn(returnSth);
+
+        fn.mockReturnValueOnce('xxx');
+
+        expect(fn('string')).toBe('xxx');
+        expect(fn('string')).toBe('yes!');
+    });
+
+    it('mock reset', () => {
+        const fn = jest.fn(returnSth);
+
+        fn.mockReturnValue('xxx');
+
+        expect(fn('string')).toBe('xxx');
+
+        fn.mockReset();
+
+        expect(fn('string')).toBe('yes!');
     });
 });
 
