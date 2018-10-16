@@ -18,6 +18,28 @@ describe('mock wrapper: jest.fn', () => {
         assert('yes' === mockFn());
         // 而且能够被函数行为统计断言中使用
         expect(mockFn).toHaveBeenCalled();
+        /**
+         * 判断一个函数是否是被 mock 了的
+         * jest.isMockFunction(function)
+         */
+        expect(jest.isMockFunction(mockFn)).toBe(true);
+    });
+
+    it('mock all functions in module', () => {
+        const examples: any = jest.genMockFromModule('../example-for-test');
+        // 这时候重新赋值将会干掉 mock, 所以重新赋值一定要包上 jest.fn
+        // examples.returnSth = jest.fn(() => false);
+
+        expect(jest.isMockFunction(examples.returnSth)).toBe(true);
+    });
+
+    it('mock the return of function', () => {
+        jest.mock('../example-for-test');
+
+        const examples = require('../example-for-test');
+        examples.returnSth.mockReturnValue('foo');
+
+        expect(examples.returnSth('string')).toBe('foo');
     });
 });
 
