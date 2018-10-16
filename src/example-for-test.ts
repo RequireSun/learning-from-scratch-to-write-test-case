@@ -25,9 +25,18 @@ export function formatDate (data: ArrayDataItem[]): ArrayDataItem[] {
     return data;
 }
 
-export function returnSth (has: boolean = true): any {
-    if (has) {
-        return 1;
+export function returnSth (type: 'string' | 'boolean' | 'number' | 'object' | 'array' = 'boolean'): string | boolean | number | object | void {
+    switch (type) {
+        case 'string':
+            return 'yes!';
+        case 'boolean':
+            return true;
+        case 'number':
+            return 1;
+        case 'object':
+            return { a: 1, };
+        case 'array':
+            return [ 1, ];
     }
 }
 
@@ -68,3 +77,8 @@ export async function asyncTwoCallback(callback1: (...args: any[]) => any, callb
         }),
     ]);
 }
+
+// export function someProcessReturnsPromise() {
+//     return Promise.resolve();
+// }
+
