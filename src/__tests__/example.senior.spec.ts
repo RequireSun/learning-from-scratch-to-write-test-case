@@ -49,3 +49,33 @@ describe('HelloWorld.vue', () => {
         assert((new RegExp(msg)).test(wrapper.text()));
     });
 });
+
+/**
+ * 为 expect 扩展自定义的断言方法
+ */
+describe('expect.extend to attach matcher on expect', () => {
+    expect.extend({
+        toBeWithinRange(received: number, floor: number, ceiling: number): { message(): string | (() => string), pass: boolean } {
+            const pass: boolean = received >= floor && received <= ceiling;
+
+            if (pass) {
+                return {
+                    message: () =>
+                        `expected ${received} not to be within range ${floor} - ${ceiling}`,
+                    pass: true,
+                };
+            } else {
+                return {
+                    message: () =>
+                        `expected ${received} to be within range ${floor} - ${ceiling}`,
+                    pass: false,
+                };
+            }
+        },
+    });
+
+    // TODO 找个生命合并的方法
+
+    (expect(100) as any).toBeWithinRange(90, 110);
+    (expect(101).not as any).toBeWithinRange(0, 100);
+});

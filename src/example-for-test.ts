@@ -25,6 +25,12 @@ export function formatDate (data: ArrayDataItem[]): ArrayDataItem[] {
     return data;
 }
 
+export function returnSth (has: boolean = true): any {
+    if (has) {
+        return 1;
+    }
+}
+
 export function someProcessSyncFake (willError: boolean): boolean {
     // some conditions
     if (willError) {
@@ -44,4 +50,21 @@ export function someProcessAsyncFake (willError: boolean, callback: (err?: Error
             });
         }
     }, 200);
+}
+
+export async function asyncTwoCallback(callback1: (...args: any[]) => any, callback2: (...args: any[]) => any): Promise<any> {
+    return await Promise.all([
+        new Promise(res => {
+            setTimeout(() => {
+                callback1();
+                res();
+            }, Math.round(Math.random() * 1000));
+        }),
+        new Promise(res => {
+            setTimeout(() => {
+                callback2();
+                res();
+            }, Math.round(Math.random() * 1000));
+        }),
+    ]);
 }
