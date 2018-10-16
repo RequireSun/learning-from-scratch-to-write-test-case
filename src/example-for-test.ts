@@ -25,7 +25,7 @@ export function formatDate (data: ArrayDataItem[]): ArrayDataItem[] {
     return data;
 }
 
-export function returnSth (type: 'string' | 'boolean' | 'number' | 'object' | 'array' = 'boolean'): string | boolean | number | object | void {
+export function returnSth (type: 'string' | 'boolean' | 'number' | 'object' | 'array' | 'NaN' | 'null' | 'undefined' = 'boolean'): string | boolean | number | object | null | void {
     switch (type) {
         case 'string':
             return 'yes!';
@@ -37,6 +37,10 @@ export function returnSth (type: 'string' | 'boolean' | 'number' | 'object' | 'a
             return { a: 1, };
         case 'array':
             return [ 1, ];
+        case 'NaN':
+            return NaN;
+        case 'null':
+            return null;
     }
 }
 
@@ -76,6 +80,14 @@ export async function asyncTwoCallback(callback1: (...args: any[]) => any, callb
             }, Math.round(Math.random() * 1000));
         }),
     ]);
+}
+
+export function returnsInput<T>(input: T): T {
+    return input;
+}
+
+export function returnsInstance(input: any): any {
+    return new input();
 }
 
 // export function someProcessReturnsPromise() {
