@@ -3,8 +3,11 @@
 import {
     returnsInput,
     asyncTwoCallback,
-    someProcessAsyncFake, returnSth,
+    someProcessAsyncFake,
+    returnSth,
 } from '@/example-for-test';
+
+import * as exampleForTest from '@/example-for-test';
 
 import assert from 'assert';
 
@@ -12,6 +15,12 @@ import assert from 'assert';
  * 这个东西可以包裹函数进行监听和 mock
  */
 describe('mock wrapper: jest.fn', () => {
+    beforeEach(() => {
+        if (jest.isMockFunction(returnSth)) {
+            returnSth.mockRestore();
+        }
+    });
+
     it('mock a function', () => {
         const mockFn = jest.fn(() => 'yes');
         // 不会影响函数的正常运行
@@ -34,22 +43,28 @@ describe('mock wrapper: jest.fn', () => {
     });
 
     it('mock the return of function', () => {
-        jest.mock('../example-for-test');
+        // jest.mock('../example-for-test', () => ({
+        //     returnSth: jest.fn(),
+        // }));
 
-        const examples = require('../example-for-test');
+        // const examples = require('../example-for-test');
 
-        examples.returnSth.mockReturnValue('foo');
+        jest.mock('../example-for-test', () => {});
 
-        expect(examples.returnSth('string')).toBe('foo');
+        (exampleForTest as any).returnSth = jest.fn();
 
-        examples.returnSth('number');
+        (returnSth as any).mockReturnValue('foo');
 
-        expect(examples.returnSth.mock.calls).toEqual([
+        expect(returnSth('string')).toBe('foo');
+
+        returnSth('number');
+
+        expect((returnSth as any).mock.calls).toEqual([
             [ 'string', ],
             [ 'number', ],
         ]);
 
-        expect(examples.returnSth.mock.results).toEqual([
+        expect((returnSth as any).mock.results).toEqual([
             { isThrow: false, value: 'foo', },
             { isThrow: false, value: 'foo', },
         ]);
@@ -61,7 +76,7 @@ describe('mock wrapper: jest.fn', () => {
         fn.mockReturnValueOnce('xxx');
 
         expect(fn('string')).toBe('xxx');
-        expect(fn('string')).toBe('yes!');
+        expect(fn('string')).toBeUndefined();
     });
 
     it('mock reset', () => {
@@ -73,7 +88,35 @@ describe('mock wrapper: jest.fn', () => {
 
         fn.mockReset();
 
-        expect(fn('string')).toBe('yes!');
+        expect(fn('string')).toBeUndefined();
+    });
+
+    it('mock activity', () => {
+        const fn = jest.fn(returnSth);
+
+        fn.mockImplementation((input: string) => {
+            if ('string' === input) {
+                return 'yyy';
+            } else {
+                return 'ball';
+            }
+        });
+
+        expect(fn('string')).toBe('yyy');
+
+        expect(fn('boolean')).toBe('ball');
+    });
+});
+
+describe.skip('使用 .skip 来跳过一组用例, 一般用来暂时注释这部分代码块', () => {
+    it('这些用例不会运行', () => {
+        throw new Error('unbelievable!');
+    });
+});
+
+describe('it 的 .skip 方法', () => {
+    it.skip('这个用例不会执行', () => {
+        throw new Error();
     });
 });
 
