@@ -34,7 +34,7 @@ export function returnSth (type: 'string' | 'boolean' | 'number' | 'object' | 'a
         case 'number':
             return 1;
         case 'object':
-            return { a: 1, };
+            return { a: 1, b: { c: 3, }, };
         case 'array':
             return [ 1, ];
         case 'NaN':

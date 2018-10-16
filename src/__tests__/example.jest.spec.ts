@@ -24,7 +24,30 @@ describe('match API', () => {
      * 为引用值匹配而生 (会遍历引用值的每个子, 来确定结果)
      */
     it('toEqual', () => {
-        expect(returnSth('object')).toEqual({ a: 1, });
+        class A {
+            a = 1;
+            b = {
+                c: 3,
+            };
+        }
+
+        expect(returnSth('object')).toEqual(new A);
+    });
+
+    /**
+     * strict 模式会将直接声明的对象与 new 出来的类实例直接视作不同的对象报错
+     */
+    it('toStrictEqual', () => {
+        expect(returnSth('object')).toStrictEqual({
+            a: 1,
+            b: {
+                c: 3,
+            },
+        });
+    });
+
+    it('toThrow', () => {
+        expect(() => { throw new Error('wow'); }).toThrow(/^wow$/);
     });
 
     /**
@@ -45,6 +68,29 @@ describe('match API', () => {
     it('string match with toMatch', () => {
         expect('it\'s a test case').toMatch(/test case$/);
         expect('it\'s a test case').toMatch('test case');
+    });
+
+    it('object match with toMatchObject', () => {
+        expect({
+            balabala: true,
+            bilibili: 4,
+            duludulu: 'name name name'
+        }).toMatchObject({
+            balabala: true,
+            // 后面会有
+            duludulu: expect.stringMatching(/name name/),
+        });
+    });
+
+    it('object has some property', () => {
+        const result = {
+            balabala: true,
+            bilibili: 4,
+            duludulu: 'name name name'
+        };
+
+        expect(result).toHaveProperty('balabala', true);
+        expect(result).toHaveProperty('bilibili');
     });
 
     /**
