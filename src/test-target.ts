@@ -28,3 +28,7 @@ export function random (max: number): number {
 export function getANumber (input: number): number {
     return input * random(input);
 }
+
+export default function (input: number): number {
+    return getANumber(-input);
+}

@@ -9,6 +9,8 @@
  * http://landcareweb.com/questions/2219/ru-he-shi-yong-jestmo-ni-es6mo-kuai-dao-ru
  *
  * 可以手动替换掉对应的函数, 但是这个会影响到全局所有的引用, 所以最好自己保存下原函数, 用完之后及时恢复
+ *
+ * 又发现一个问题, 直接替换法对待一般函数都是正常的, 但是在 mock 一个文件中的某个函数时, 同文件中的另一个引用该函数的函数, 并不会感受到 mock
  */
 
 import {
@@ -16,6 +18,12 @@ import {
     twoProcessAsyncFake,
     getANumber,
 } from '@/test-target';
+
+import {
+    useRandom,
+} from '@/test-target-2';
+
+import negative from '@/test-target';
 
 import * as TestTarget from '@/test-target';
 
@@ -218,21 +226,62 @@ describe('\n  mock 基础使用及断言 (包装及监控)\n\t', () => {
  */
 describe('\n  mock 进阶使用\n\t', () => {
 
-    it('', () => {
+    it('在使用 es6 import / export 时使用 mock', () => {
+        // 保存原方法
         const bakGetANumber: (input: number) => number = TestTarget.getANumber;
 
-        // 为了能够对 import 进行赋值
+        // 为了能够对 import 进行赋值, 所以使用 `TestTarget as any`
         (TestTarget as any).getANumber = jest.fn((input: number): number => input * 7);
 
+        // 校验返回值
         expect(getANumber(1)).toBe(7);
 
+        // 校验状态目前确实已被 mock
         expect(jest.isMockFunction(TestTarget.getANumber)).toBeTruthy();
         expect(jest.isMockFunction(getANumber)).toBeTruthy();
 
+        // 还原现场
         (TestTarget as any).getANumber = bakGetANumber;
 
+        // 校验状态目前确实没被 mock
         expect(jest.isMockFunction(TestTarget.getANumber)).toBeFalsy();
         expect(jest.isMockFunction(getANumber)).toBeFalsy();
+    });
+
+    it('mock default export', () => {
+        // 保存原方法
+        const bakDefault: (input: number) => number = TestTarget.default;
+
+        // 为了能够对 import 进行赋值, 所以使用 `TestTarget as any`
+        (TestTarget as any).default = jest.fn((input: number): number => input * 7);
+
+        // 校验返回值
+        expect(negative(1)).toBe(7);
+
+        // 校验状态目前确实已被 mock
+        expect(jest.isMockFunction(TestTarget.default)).toBeTruthy();
+        expect(jest.isMockFunction(negative)).toBeTruthy();
+        // 还原现场
+        (TestTarget as any).default = bakDefault;
+
+        // 校验状态目前确实没被 mock
+        expect(jest.isMockFunction(TestTarget.default)).toBeFalsy();
+        expect(jest.isMockFunction(negative)).toBeFalsy();
+    });
+
+    it('mock 底层依赖', () => {
+        const bakRandom: (input: number) => number = TestTarget.random;
+
+        (TestTarget as any).random = jest.fn((input: number): number => input * 7);
+
+        // 这个并不 ok
+        // expect(getANumber(3)).toBe(63);
+
+        useRandom(3);
+
+        expect(TestTarget.random).toBeCalledWith(10);
+
+        (TestTarget as any).random = bakRandom;
     });
 
 
