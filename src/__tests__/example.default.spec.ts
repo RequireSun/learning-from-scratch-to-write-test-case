@@ -1,5 +1,16 @@
 'use strict';
 
+/**
+ * jest mock 与 es6 import 协同使用
+ *
+ * 英文版:
+ * https://stackoverflow.com/questions/40465047/how-can-i-mock-an-es6-module-import-using-jest/40465435
+ * 中文版:
+ * http://landcareweb.com/questions/2219/ru-he-shi-yong-jestmo-ni-es6mo-kuai-dao-ru
+ *
+ * 可以手动替换掉对应的函数, 但是这个会影响到全局所有的引用, 所以最好自己保存下原函数, 用完之后及时恢复
+ */
+
 import {
     someProcessAsyncFake,
     twoProcessAsyncFake,
@@ -206,58 +217,106 @@ describe('\n  mock 基础使用及断言 (包装及监控)\n\t', () => {
  * 但是 jest.fn() 的包装只能在直接调用时使用, 当我想 mock 一个函数内部调用的其他函数时该怎么办呢?
  */
 describe('\n  mock 进阶使用\n\t', () => {
-    beforeEach(() => {
-        // 每个用例开始前 restore 整个项目的 mock, 防止用例之间互相影响
-        jest.restoreAllMocks();
 
-        if (jest.isMockFunction(getANumber)) {
-            getANumber.mockRestore();
-        }
+    it('', () => {
+        const bakGetANumber: (input: number) => number = TestTarget.getANumber;
 
-        // TODO jest.unmock
-        // TODO jest.doMock
+        // 为了能够对 import 进行赋值
+        (TestTarget as any).getANumber = jest.fn((input: number): number => input * 7);
+
+        expect(getANumber(1)).toBe(7);
+
+        expect(jest.isMockFunction(TestTarget.getANumber)).toBeTruthy();
+        expect(jest.isMockFunction(getANumber)).toBeTruthy();
+
+        (TestTarget as any).getANumber = bakGetANumber;
+
+        expect(jest.isMockFunction(TestTarget.getANumber)).toBeFalsy();
+        expect(jest.isMockFunction(getANumber)).toBeFalsy();
     });
 
-    it('jest.genMockFromModule() \n\tmock 整个模块\n\t', () => {
-        const examples: any = jest.genMockFromModule('../test-target');
-        // 这时候重新赋值将会干掉 mock, 所以重新赋值一定要包上 jest.fn
-        // examples.returnSth = jest.fn(() => false);
 
-        expect(jest.isMockFunction(examples.getANumber)).toBe(true);
-    });
+    // // 每个用例开始前 restore 整个项目的 mock, 防止用例之间互相影响
+    // beforeEach(() => {
+    //     // 这个函数的作用是清除内存缓冲区中缓存的 require('xxx') 的内容
+    //     // jest.resetModules();
+    //     // 一般用法:
+    //     // beforeEach(() => { jest.resetModules(); });
+    //     // it('xxx', () => { const xxx = require('xxx'); doSth(); })
+    //     // it('xxx', () => { const xxx = require('xxx'); doAnotherThing(); })
+    //
+    //     // jest.restoreAllMocks();
+    //     //
+    //     // if (jest.isMockFunction(getANumber)) {
+    //     //     getANumber.mockRestore();
+    //     // }
+    // });
 
-    it('jest.mock() \n\t直接全局 mock 掉整个模块\n\t', () => {
-        // jest.genMockFromModule() 是返回一个 mock 的引用, jest.mock() 则会直接替换掉原值
-        jest.mock('../test-target');
+    // it('jest.genMockFromModule() \n\tmock 整个模块\n\t', () => {
+    //     const examples: any = jest.genMockFromModule('../test-target');
+    //     // 这时候重新赋值将会干掉 mock, 所以重新赋值一定要包上 jest.fn
+    //     examples.getANumber = jest.fn(() => false);
+    //
+    //     expect(jest.isMockFunction(examples.getANumber)).toBe(true);
+    //     expect(examples.getANumber(1)).toBe(false);
+    // });
+    //
+    // /**
+    //  * jest.mock() 会直接上升到顶层, 用 jest.doMock() 将局限在这个代码块中
+    //  * jest.mock() 和 jest.doMock() 的第二个参数 factory 在 es6 import / export 模式下不好用
+    //  * 所以暂时可以用 赋值替换 和 mockImplementation 两种方法来进行 mock
+    //  */
+    // it('jest.doMock() \n\t直接 mock 掉整个模块\n\t', () => {
+    //     // jest.genMockFromModule() 是返回一个 mock 的引用, jest.mock() 则会直接替换掉原值
+    //     jest.doMock('../test-target');
+    //
+    //     // 下方两行代码相当于这一行
+    //     // (TestTarget as any).getANumber = jest.fn(() => 2);
+    //
+    //     (TestTarget as any).getANumber = jest.fn(TestTarget.getANumber);
+    //     // 因为上方 mock 过了, 所以引入模块的实际对象已经变成了一个 mock 函数了
+    //     (getANumber as any).mockReturnValue(2);
+    //     // 如果按照代码逻辑运行, in 1 不可能 out 2 的
+    //     expect(getANumber(1)).toBe(2);
+    // });
 
-        (TestTarget as any).getANumber = jest.fn();
-        // 因为上方 mock 过了, 所以引入模块的实际对象已经变成了一个 mock 函数了
-        (getANumber as any).mockReturnValue(2);
-        // 如果按照代码逻辑运行, in 1 不可能 out 2 的
-        expect(getANumber(1)).toBe(2);
-    });
+    // it('.mockImplementation() \n\t直接替换函数的功能\n\t', () => {
+    //     jest.doMock('../test-target');
+    //
+    //     (TestTarget.getANumber as any).mockImplementation((input: number): number => -input);
+    //
+    //     expect(getANumber(1)).toBe(-1);
+    // });
 
-    it.skip('jest.mock() \n\t直接替换函数\n\t', () => {
-        jest.mock('../test-target', () => ({
-            getANumber: jest.fn((input: number): number => -input),
-        }));
-
-        console.log(getANumber);
-
-        expect(getANumber(1)).toBe(-1);
-    });
-
-    it('.mock.calls & .mock.results \n\t读取入参与返回\n\t', () => {
-        // expect((returnSth as any).mock.calls).toEqual([
-        //     [ 'string', ],
-        //     [ 'number', ],
-        // ]);
-        //
-        // expect((returnSth as any).mock.results).toEqual([
-        //     { isThrow: false, value: 'foo', },
-        //     { isThrow: false, value: 'foo', },
-        // ]);
-    });
+    // it('.mockImplementation() \n\t替换函数依赖的函数\n\t', () => {
+    //     // jest.mock('../test-target', () => {
+    //     //     return {
+    //     //         __esModule: true,
+    //     //         random: jest.fn((input: number): number => -input),
+    //     //         getANumber: jest.fn((input: number): number => -input),
+    //     //     };
+    //     // });
+    //
+    //     // (TestTarget as any).random = jest.fn(TestTarget.random);
+    //     //
+    //     // (TestTarget.random as any).mockImplementation((input: number): number => -input);
+    //     //
+    //     // (TestTarget.getANumber as any).mockRestore();
+    //
+    //     expect(TestTarget.getANumber(8)).toBeGreaterThan(0);
+    // });
+    //
+    // it('.mock.calls & .mock.results \n\t读取入参与返回\n\t', () => {
+    //     // expect((returnSth as any).mock.calls).toEqual([
+    //     //     [ 'string', ],
+    //     //     [ 'number', ],
+    //     // ]);
+    //     //
+    //     // expect((returnSth as any).mock.results).toEqual([
+    //     //     { isThrow: false, value: 'foo', },
+    //     //     { isThrow: false, value: 'foo', },
+    //     // ]);
+    // });
 });
 
 describe('\n  基础字段内容匹配 的 一些语法糖\n\t', () => {
