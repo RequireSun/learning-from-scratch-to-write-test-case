@@ -3,6 +3,7 @@
 import {
     someProcessAsyncFake,
     twoProcessAsyncFake,
+    getANumber,
 } from '@/test-target';
 
 import * as TestTarget from '@/test-target';
@@ -140,7 +141,7 @@ describe('\n  子内容通配匹配 (只能在 toEqual 和 toBeCalledWith 里作
 /**
  * mock 的本质就是劫持某个函数, 并对其执行进行某些特定的处理 (监听 / 修改返回 / 统计)
  */
-describe('\n  mock 的使用\n\t', () => {
+describe('\n  mock 基础使用及断言 (包装及监控)\n\t', () => {
 
     it('jest.fn() \n\tmock 某个函数\n\t', () => {
         const mockFn = jest.fn(TestTarget.getANumber);
@@ -199,8 +200,64 @@ describe('\n  mock 的使用\n\t', () => {
         // .toHaveLastReturnedWith() .toHaveNthReturnedWith()
         // 功能差不多, 不再赘述
     });
+});
 
-    // 但是 jest.fn() 的包装只能在直接调用时使用, 当我想 mock 一个函数内部调用的其他函数时该怎么办呢?
+/**
+ * 但是 jest.fn() 的包装只能在直接调用时使用, 当我想 mock 一个函数内部调用的其他函数时该怎么办呢?
+ */
+describe('\n  mock 进阶使用\n\t', () => {
+    beforeEach(() => {
+        // 每个用例开始前 restore 整个项目的 mock, 防止用例之间互相影响
+        jest.restoreAllMocks();
+
+        if (jest.isMockFunction(getANumber)) {
+            getANumber.mockRestore();
+        }
+
+        // TODO jest.unmock
+        // TODO jest.doMock
+    });
+
+    it('jest.genMockFromModule() \n\tmock 整个模块\n\t', () => {
+        const examples: any = jest.genMockFromModule('../test-target');
+        // 这时候重新赋值将会干掉 mock, 所以重新赋值一定要包上 jest.fn
+        // examples.returnSth = jest.fn(() => false);
+
+        expect(jest.isMockFunction(examples.getANumber)).toBe(true);
+    });
+
+    it('jest.mock() \n\t直接全局 mock 掉整个模块\n\t', () => {
+        // jest.genMockFromModule() 是返回一个 mock 的引用, jest.mock() 则会直接替换掉原值
+        jest.mock('../test-target');
+
+        (TestTarget as any).getANumber = jest.fn();
+        // 因为上方 mock 过了, 所以引入模块的实际对象已经变成了一个 mock 函数了
+        (getANumber as any).mockReturnValue(2);
+        // 如果按照代码逻辑运行, in 1 不可能 out 2 的
+        expect(getANumber(1)).toBe(2);
+    });
+
+    it.skip('jest.mock() \n\t直接替换函数\n\t', () => {
+        jest.mock('../test-target', () => ({
+            getANumber: jest.fn((input: number): number => -input),
+        }));
+
+        console.log(getANumber);
+
+        expect(getANumber(1)).toBe(-1);
+    });
+
+    it('.mock.calls & .mock.results \n\t读取入参与返回\n\t', () => {
+        // expect((returnSth as any).mock.calls).toEqual([
+        //     [ 'string', ],
+        //     [ 'number', ],
+        // ]);
+        //
+        // expect((returnSth as any).mock.results).toEqual([
+        //     { isThrow: false, value: 'foo', },
+        //     { isThrow: false, value: 'foo', },
+        // ]);
+    });
 });
 
 describe('\n  基础字段内容匹配 的 一些语法糖\n\t', () => {
