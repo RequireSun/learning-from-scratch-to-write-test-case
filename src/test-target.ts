@@ -20,3 +20,11 @@ export async function twoProcessAsyncFake(callbacks: ((...args: any[]) => any)[]
         }, Math.round(Math.random() * 1000));
     })));
 }
+
+export function random (max: number): number {
+    return Math.floor(Math.random() * max);
+}
+
+export function getANumber (input: number): number {
+    return input * random(input);
+}

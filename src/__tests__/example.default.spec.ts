@@ -5,6 +5,8 @@ import {
     twoProcessAsyncFake,
 } from '@/test-target';
 
+import * as TestTarget from '@/test-target';
+
 import {
     promisify,
 } from 'util';
@@ -135,6 +137,72 @@ describe('\n  子内容通配匹配 (只能在 toEqual 和 toBeCalledWith 里作
     });
 });
 
+/**
+ * mock 的本质就是劫持某个函数, 并对其执行进行某些特定的处理 (监听 / 修改返回 / 统计)
+ */
+describe('\n  mock 的使用\n\t', () => {
+
+    it('jest.fn() \n\tmock 某个函数\n\t', () => {
+        const mockFn = jest.fn(TestTarget.getANumber);
+        // 不会影响函数的正常运行
+        expect(mockFn(1)).toEqual(expect.any(Number));
+    });
+
+    it('jest.isMockFunction() \n\t判断一个函数是否是 mock\n\t', () => {
+        const mockFn = jest.fn(TestTarget.getANumber);
+
+        expect(jest.isMockFunction(mockFn)).toBe(true);
+    });
+
+    it('.toHaveBeenCalled() \n\t判断 mock 函数是否被调用\n\t', () => {
+        const mockFn = jest.fn(TestTarget.getANumber);
+        mockFn(1);
+        expect(mockFn).toHaveBeenCalled();
+    });
+
+    it('.toHaveBeenCalledTimes() \n\t统计 mock 函数被调次数\n\t', () => {
+        const mockFn = jest.fn(TestTarget.getANumber);
+        mockFn(1);
+        mockFn(1);
+        expect(mockFn).toHaveBeenCalledTimes(2);
+    });
+
+    it('.toHaveBeenCalledWith() \n\t统计 mock 函数调用参数\n\t', () => {
+        const mockFn = jest.fn(TestTarget.getANumber);
+        mockFn(1);
+        expect(mockFn).toHaveBeenCalledWith(1);
+
+        // 除此之外还有
+        // .toHaveBeenLastCalledWith() .toHaveBeenNthCalledWith()
+        // 功能差不多, 不再赘述
+    });
+
+    it('.toHaveReturned() \n\t判断 mock 函数是否有返回\n\t', () => {
+        const mockFn = jest.fn(TestTarget.getANumber);
+        mockFn(1);
+        expect(mockFn).toHaveReturned();
+    });
+
+    it('.toHaveReturnedTimes() \n\t统计 mock 函数有返回值次数\n\t', () => {
+        const mockFn = jest.fn(TestTarget.getANumber);
+        mockFn(1);
+        mockFn(1);
+        expect(mockFn).toHaveReturnedTimes(2);
+    });
+
+    it('.toHaveReturnedWith() \n\t统计 mock 函数调用参数\n\t', () => {
+        const mockFn = jest.fn(TestTarget.getANumber);
+        mockFn(0);
+        expect(mockFn).toHaveReturnedWith(0);
+
+        // 除此之外还有
+        // .toHaveLastReturnedWith() .toHaveNthReturnedWith()
+        // 功能差不多, 不再赘述
+    });
+
+    // 但是 jest.fn() 的包装只能在直接调用时使用, 当我想 mock 一个函数内部调用的其他函数时该怎么办呢?
+});
+
 describe('\n  基础字段内容匹配 的 一些语法糖\n\t', () => {
     it('.toBeInstanceOf() \n\t判断是不是某个类的实例\n\t', () => {
         return expect(new Date).toBeInstanceOf(Date);
@@ -246,3 +314,5 @@ describe('\n  断言执行统计\n\t', () => {
     });
 
 });
+
+// TODO spy
