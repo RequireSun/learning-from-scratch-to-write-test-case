@@ -17,6 +17,7 @@ import {
     someProcessAsyncFake,
     twoProcessAsyncFake,
     getANumber,
+    random,
 } from '@/test-target';
 
 import {
@@ -30,6 +31,8 @@ import * as TestTarget from '@/test-target';
 import {
     promisify,
 } from 'util';
+
+import SpyInstance = jest.SpyInstance;
 
 describe('\n  基础字段内容匹配\n\t', () => {
     it('.toBe() \n\t值判断 (其实就是 === 的语法糖)\n\t', () => {
@@ -284,6 +287,20 @@ describe('\n  mock 进阶使用\n\t', () => {
         (TestTarget as any).random = bakRandom;
     });
 
+    it('试试 spyOn', () => {
+        const mockedRandom: SpyInstance<(input: number) => number> = jest.spyOn(TestTarget, 'random');
+
+        mockedRandom.mockImplementation((input: number): number => input * 7);
+
+        expect(jest.isMockFunction(random)).toBeTruthy();
+
+        // 和上方一样的结果, 够不到
+        // expect(getANumber(3)).toBe(63);
+
+        jest.restoreAllMocks();
+
+        expect(jest.isMockFunction(random)).toBeFalsy();
+    });
 
     // // 每个用例开始前 restore 整个项目的 mock, 防止用例之间互相影响
     // beforeEach(() => {
